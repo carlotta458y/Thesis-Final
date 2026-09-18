@@ -3,7 +3,7 @@
 #
 # This file adds no health-economic modelling. Every cost, utility,
 # transition probability and cohort trace it uses is produced by the engine
-# in Markov_Model.R, from the same inout parameter shee. What is new
+# in Markov_Model.R, from the same input parameter sheet. What is new
 # here is arithmetic on the accuracy and compliance rate.
 #
 # =======================================================================
@@ -13,7 +13,7 @@ setwd("")
 source("Markov_Model.R")
 
 
-# Checks the NMB sign for would leakers and non leakers. Based on this compairson makes the verdict
+# Checks the NMB sign for would-leakers and non-leakers. Based on this comparison, makes the verdict
 # whether using the tool and therefore classifying patients is useful -> cost-effective
 # Returns  list with one element, `verdict`, one of:
 #            "accuracy matters"  - the two patient types disagree, so telling
@@ -45,13 +45,13 @@ is_accuracy_valuable <- function (NMB_wl, NMB_nl, upgrade){
 
 }
 
-# returns the average value (net benefit) the AI-based medical device creates per patient from the patient cohort, cosnidering compliance
+# returns the average value (net benefit) the AI-based medical device creates per patient from the patient cohort, considering compliance
 # Returns  single number - total NMB
 get_total_NMB <- function (se, sp, NMB_wl, NMB_nl, wouldleaker_share, upgrade, compliance, price){
   if(upgrade){
-    total_NMB <- compliance * (wouldleaker_share * se * NMB_wl + (1- wouldleaker_share) * (1-sp) * NMB_nl) # TP and FP (TP are the amount of would leakers that get moved and FP are the amount of non leakers that get moved) -> the other stay at source so no impact
+    total_NMB <- compliance * (wouldleaker_share * se * NMB_wl + (1- wouldleaker_share) * (1-sp) * NMB_nl) # TP and FP (TP is the amount of would-leakers that get moved and FP are the amount of non leakers that get moved) -> the other stay at source so no impact
   }else{
-    total_NMB <- compliance * (wouldleaker_share * (1 -se) * NMB_wl + (1- wouldleaker_share) * sp * NMB_nl) # FN and TN (FN are the amount of would leakers that get moved and TN are the amount of non leakers that get moved)
+    total_NMB <- compliance * (wouldleaker_share * (1 -se) * NMB_wl + (1- wouldleaker_share) * sp * NMB_nl) # FN and TN (FN are the amount of would-leakers that get moved and TN are the amount of non leakers that get moved)
   }
   if(price != 0){
     total_NMB - price
@@ -62,7 +62,7 @@ get_total_NMB <- function (se, sp, NMB_wl, NMB_nl, wouldleaker_share, upgrade, c
 }
 
 
-# Sets the total NMB to zero and solves for either sensivitiy holding specificity at its based value
+# Sets the total NMB to zero and solves for either sensitivity holding specificity at its base value
 # or the other way around.
 # Returns  list of four:
 #   se_threshold  sensitivity at which the decision breaks even, sp held at base
@@ -145,7 +145,7 @@ run_scenario_accuracy <- function(p) {
     total_cost_source_nl <- p$cost_surgery[source] + trans_cost_source_nl + get_state_cost(p, source_trace_nl)
 
 
-    ### Destination surgery of the scenatio pair-----------------------------------------
+    ### Destination surgery of the scenario pair-----------------------------------------
 
     pe_destination_wl <- endoleak_prob(p, destination, riskier_surgery, "leaker")
     pe_destination_nl <- endoleak_prob(p, destination, riskier_surgery, "never")
@@ -177,7 +177,7 @@ run_scenario_accuracy <- function(p) {
   for(ln in names(p$lambdas)){
 
     lam <- p$lambdas[[ln]]
-    NMB_wl <- lam*delta_utility_wl - delta_cost_wl # cost effectievenss of moving a would leaker
+    NMB_wl <- lam*delta_utility_wl - delta_cost_wl # cost effectiveness of moving a would-leaker
     NMB_nl <- lam* delta_utility_nl - delta_cost_nl #cost effectiveness of moving a non leaker
     total_NMB <- get_total_NMB(p$sensitivity_base, p$specificity_base, NMB_wl , NMB_nl, wouldleaker_share, isupgrade, p$compliance, p$cost_spro )
     acc <- is_accuracy_valuable(NMB_wl, NMB_nl, isupgrade)
