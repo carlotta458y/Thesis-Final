@@ -1,17 +1,17 @@
 # ---------------------------------------------------------------------------
 # Markov model - Cost-effectiveness analysis of the AI-based medical device
 #
-# Model code for: Economic evaluation of AI-based medical devices , MSc Management of Technology,
+# Model code for: Economic evaluation of AI-based medical devices, MSc Management of Technology,
 # TU Delft, 2026. Author: Carlotta Lichtenauer.
 #
-# The model compares two surgery types within a decision scenario which are considered for
-# treating AAA patients. The outcome of the AI-based medical device identifies patients which would
-# get an endoleak or not. Based on this patients either get moved within the decision scenario
-# or not. The model estimates whether using the tool and movinf flagged patients is cost-effective.
-# The model runs over a life time horizon of 25 years and is conducted from a hospital payer perspective.
+# The model compares two surgery types within a decision scenario that are considered for
+# treating AAA patients. The outcome of the AI-based medical device identifies patients who would
+# get an endoleak or not. Based on this, patients either get moved within the decision scenario
+# or not. The model estimates whether using the tool and moving flagged patients is cost-effective.
+# The model runs over a lifetime horizon of 25 years and is conducted from a hospital payer perspective.
 
-# INPUT: excel sheet with cost, time, follow-up and utility data
-# OUTPUT: excel sheet which evaluates each ecsion scneario per WTP threshold
+# INPUT: Excel sheet with cost, time, follow-up and utility data
+# OUTPUT: Excel sheet which evaluates each decision scenario per WTP threshold
 
 # The code is organised in four stages so that the whole analysis can be
 # re-run with perturbed inputs for the deterministic (DSA_Markov.R) and
@@ -48,7 +48,7 @@ load_raw <- function(path = "../Model/parameters.xlsx") {
 # --- Stage 2: parameters ----------------------------------------------------
 
 # overrides  : list with all border values of the sensitivity analysis -> costs, utilities, event probs
-# curve_mult : in sensitivity analysis takes the mutliplier for all follow up curves -> scales all parameters per surgery per follow up moment the same
+# curve_mult : in sensitivity analysis takes the multiplier for all follow-up curves -> scales all parameters per surgery per follow-up moment the same
 # time_mult  : in sensitivity analysis takes the multiplier for all time values -> scales all parameters per surgery type the same
 build_params <- function(raw, overrides = list(), curve_mult = list(), time_mult = list()) {
 
@@ -106,7 +106,7 @@ build_params <- function(raw, overrides = list(), curve_mult = list(), time_mult
   # Input data are CUMULATIVE probabilities of the event per visit.
   fup <- raw$fup[!is.na(raw$fup$Parameter), ]
 
-  # Function for reading an extrapolating none existing values
+  # Function for reading and extrapolating non-existing values
   # Turns cumulative survival data into hazard function
   read_cumulative_prob_curve <- function(parameter, surgery) {
     d <- fup[fup$Parameter == parameter & fup$surgery == surgery &
@@ -127,7 +127,7 @@ build_params <- function(raw, overrides = list(), curve_mult = list(), time_mult
     # at once so the contrast between surgeries is preserved and only the level of the hazard moves
     mult <- curve_mult[[parameter]]
     if(!is.null(mult)) hazard_data <- hazard_data* mult
-    #this only works within the time frame the moment we are outside the data time frame this is flat lining
+    #this only works within the time frame the moment we are outside the data time frame, this is flat lining
     hazard_curve <- (approx(data_days, hazard_data, xout = visit_days, rule = 2)$y)
 
     n <- length(data_days)
@@ -137,11 +137,11 @@ build_params <- function(raw, overrides = list(), curve_mult = list(), time_mult
       constant_hazard_ratio <- (hazard_data[n] - hazard_data[n - 1]) / (data_days[n] - data_days[n - 1])
       hazard_curve[past_data] <- hazard_data[n] + constant_hazard_ratio * (visit_days[past_data] - data_days[n])
     }
-    #translate back to cumulative probability (inverse of survival)
+    # Translate back to cumulative probability (inverse of survival)
     1 - exp(-hazard_curve)
   }
 
-  # Build the cumulative matrix with 4 surgery type rows and columns per follow up visist
+  # Build the cumulative matrix with 4 surgery type rows and columns per follow-up visit
   build_curve_matrix <- function(parameter) {
     m <- matrix(0, n_surgery, n_cycles)
     for (s in names(surgery_code)) {
@@ -159,7 +159,7 @@ build_params <- function(raw, overrides = list(), curve_mult = list(), time_mult
   rupture_cum <- build_curve_matrix("p_rupture_annual")
 
 
-  # Turn the cumulative data matrices into per cycle probability matrices
+  # Turn the cumulative data matrices into per-cycle probability matrices
   reint_matrix              <- matrix(0, n_surgery, n_cycles)
   death_endo                <- matrix(0, n_surgery, n_cycles)
   shrink_sac                <- matrix(0, n_surgery, n_cycles)
@@ -175,7 +175,7 @@ build_params <- function(raw, overrides = list(), curve_mult = list(), time_mult
   }
 
   # Peri-operative mortality: single value per surgery, at 30 days
-  # Read straight off cum_value -> if DSA applies then mutliplication has been applied
+  # Read straight off cum_value -> if DSA applies then multiplication has been applied
   p_perio <- numeric(n_surgery)
   mult_perio <- curve_mult[["p_perio"]]
   for (s in names(surgery_code)) {
@@ -183,8 +183,8 @@ build_params <- function(raw, overrides = list(), curve_mult = list(), time_mult
     v <- fup$cum_value[fup$Parameter == "p_perio" & fup$surgery == s]
     v <- v[!is.na(v)]
     stopifnot(length(v) == 1)
-    # during sensitivity analysis the perio mortality is mutliplied
-    # however not the cumulative value but the hazard
+    # during sensitivity analysis the perio mortality is multiplied
+    # however, not the cumulative value but the hazard
     if(!is.null(mult_perio)){
       hazard <- -log( 1 - v) * mult_perio
       v <- 1 - exp(-hazard)
@@ -211,9 +211,9 @@ build_params <- function(raw, overrides = list(), curve_mult = list(), time_mult
   scenarios$source      <- surgery_code[scenarios$source]
   scenarios$destination <- surgery_code[scenarios$destination]
 
-  # The elicit pi_wouldleak values needs also be scaled during the senitivity analysis the same amount as the scale on the endoleak probability
+  # The elicit pi_wouldleak values also need to be scaled during the sensitivity analysis the same amount as the scale on the endoleak probability
   # Assumption that pi_wouldleak is the cumulative
-  # pi_wouldleak gets its won multiplier since it is an elicit value and therefore has more uncertainty
+  # pi_wouldleak gets its own multiplier since it is an elicited value and therefore has more uncertainty
   mult_pi <- curve_mult[["pi_wouldleak"]]
   if (!is.null(mult_pi)) {
     H <- -log(1 - scenarios$pi_wouldleak)
@@ -223,13 +223,13 @@ build_params <- function(raw, overrides = list(), curve_mult = list(), time_mult
 
   # Decision rule of high and low ERI of the AI-based medical device
   is_upgrade <- scenarios$type == "Upgrading"
-  scenarios$flagged_s    <- ifelse(is_upgrade, scenarios$destination, scenarios$source) #High ERI cases will recive the destination surgery in upgrade scenarios
+  scenarios$flagged_s    <- ifelse(is_upgrade, scenarios$destination, scenarios$source) #High ERI cases will receive the destination surgery in upgrade scenarios
   scenarios$notflagged_s <- ifelse(is_upgrade, scenarios$source,      scenarios$destination) #Low ERI cases will receive the source surgery in upgrade scenarios
 
 
   ## Costs ------------------------------------------------------------------
 
-  # costs are based on time in oeprating room and time by the clinican (opportunity cost)
+  # costs are based on time in operating room and time by the clinician (opportunity cost)
   cost_min <- cost_of("c_operating_room") + cost_of("c_clinican") / 60
 
   procedure_cost <- function(surgery, device) {
@@ -388,8 +388,8 @@ make_transition_matrix <- function(p, s, visit, pe, can_shrink ) {
   m["sac_expansion", "sac_expansion"] <- (1 - p_die_exp) * (1 - p_reint - p_rupture)
 
 
-  # Rupture is just a routing state -> which moves patients to emergency states -> however if a patient has died from rupture that has happened already from expaning to death
-  # no one can die in this state => death because of aneurysm related prob is already applied before
+  # Rupture is just a routing state -> which moves patients to emergency states -> however, if a patient has died from rupture, that has happened already from expanding to death
+  # no one can die in this state => death because of aneurysm-related prob is already applied before
   m["Rupture", "OSR"]      <- p$r_OSR
   m["Rupture", "PostLeak"] <- 1 - p$r_OSR
 
@@ -397,7 +397,7 @@ make_transition_matrix <- function(p, s, visit, pe, can_shrink ) {
   m["PostLeak", "Dead"]     <- d_base
   # TODO: possible re-leak after reintervention (p_releak_annual, default 0)
 
-  #TODO: OSR can be from the get go or after emegerency -> different mortality rate
+  #TODO: OSR can be from the get-go or after emergency -> different mortality rate
   m["OSR", "Dead"] <- d_osr
   m["OSR", "Rupture"] <- (1 - d_osr) * p_rupture_osr
   m["OSR", "PostLeak"] <- (1 - d_osr) * p_reint_osr
@@ -440,7 +440,7 @@ run_EVAR <- function(p, s, pe, can_shrink = TRUE) {
 # Discounted total of a state-weighted quantity over the whole trace, with
 # half-cycle correction. Shared by QALYs and state costs, which differ only in
 # the weights and the discount rate.
-# Returns  single number, discounted to t = 0.
+# Returns a  single number, discounted to t = 0.
 accumulate_state <- function(p, trace, weights, disc_rate) {
   total <- 0
   for (k in seq_len(p$n_cycles)) {
@@ -458,7 +458,7 @@ get_QALY       <- function(p, trace) accumulate_state(p, trace, p$state_utils, p
 get_state_cost <- function(p, trace) accumulate_state(p, trace, p$state_costs, p$disc_cost)
 
 # Costs attached to transitions (reintervention, conversion, rupture)
-# Returns  single number
+# Returns a  single number
 get_transition_cost <- function(p, s, pe, can_shrink = TRUE) {
   total <- 0
   state <- start_state(p, s)
@@ -483,7 +483,7 @@ get_transition_cost <- function(p, s, pe, can_shrink = TRUE) {
 
 # Expected number of new endoleaks per patient: everyone crossing
 # sac_stable -> sac_expansion, summed over cycles.
-# Returns  single number
+# Returns a  single number
 get_endoleak_count <- function(p, s, pe, can_shrink = TRUE) {
   state <- start_state(p, s)
   total <- 0
@@ -526,7 +526,7 @@ endoleak_prob <- function (p,s, risk_surgery, type = c("leaker", "never")){
 
 }
 
-# once we are out of the data window also earlier defined would leakers can enter the sac shrinking state
+# once we are out of the data window also earlier defined, would leakers can enter the sac shrinking state
 # Returns  logical vector, length p$n_cycles - whether a patient of this type
 # may enter sac_shrinking in each cycle. Would-leakers cannot shrink
 # inside the data window, by definition of the split.
@@ -570,7 +570,7 @@ run_scenarios <- function(p) {
   # over the two arms below
 
 
-    ### Comparator: static EVAR, no tool -> patient receive source surgery ------------------------------------
+    ### Comparator: static EVAR, no tool -> patient receives source surgery ------------------------------------
     pe_static_wl <- endoleak_prob(p, s, riskier_surgery, "leaker")
     pe_static_nl <- endoleak_prob(p, s, riskier_surgery  , "never")
 
@@ -603,7 +603,7 @@ run_scenarios <- function(p) {
 
     # Layer 3 of the model logic
     # Sensitivity and specificity are applied to classify patients
-    # Results in four classifications groups
+    # Results in four classification groups
     TP <- wouldleaker_share       * p$sensitivity_base
     FN <- wouldleaker_share       * (1 - p$sensitivity_base)
     TN <- (1 - wouldleaker_share) * p$specificity_base
