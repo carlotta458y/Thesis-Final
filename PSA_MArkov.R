@@ -4,7 +4,7 @@ source("Markov_Model.R")
 raw  <- load_raw()
 base <- run_model(raw)
 
-#since the models is probabilisitc need to ensure results don't change with every run
+# Since the model is probabilistic, results shouldn't change with every run
 set.seed(42)
 
 
@@ -23,7 +23,7 @@ sens_analysis <- sens_analysis[!is.na(sens_analysis$parameter) & !is.na(sens_ana
 
 # draw with: rbeta(n, shape1, shape2)
 # returns value between 0 and 1
-# centerd around the mean
+# centered around the mean
 fit_beta <- function (mean, s_e){
   if (mean <= 0 || mean >= 1) stop("beta: mean must be strictly between 0 and 1")
   if (s_e <= 0) stop("beta: s_e must be positive")
@@ -40,7 +40,7 @@ fit_beta <- function (mean, s_e){
 
 # draw with: rgamma(n, shape, scale)
 # often right skewed -> long tail to the right
-# most patients have the similar kind of costs or time values -> costs and time are symmetric > most people get similar kind
+# most patients have similar kinds of costs or time values -> costs and time are symmetric > most people get similar kind
 # just a few outliers -> long tail on the right
 # not bound between 0 and 1
 fit_gamma <- function(mean, s_e){
@@ -52,7 +52,7 @@ fit_gamma <- function(mean, s_e){
 }
 
 
-# applied on mutliplier
+# applied on multiplier
 # draw with: rlnorm(n, meanlog, sdlog)
 fit_lnorm <- function(mean, s_e){
   if (mean <= 0) stop("lnorm: mean must be positive")
@@ -67,7 +67,7 @@ fit_lnorm <- function(mean, s_e){
 
 
 # Which run_model() argument does a drawn value belong to?
-# follow_up rows are multipliers on a whole curve, time rows are multpliers for all surgery types
+# follow_up rows are multipliers on a whole curve, time rows are multipliers for all surgery types
 # everything else replaces one number
 destination_of <- function(sheet) {
   switch (sheet, follow_up= , scenarios = "curve_mult", time = "time_mult","overrides")
@@ -110,7 +110,7 @@ draw_random <- function(distribution, p) {
 
 
 
-# Get the distirbution shape of every parameter
+# Get the distribution shape of every parameter
 fit_all <- function(sens, raw) {
 
   if (anyDuplicated(sens$parameter))
