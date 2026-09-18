@@ -11,9 +11,9 @@ names(sens_analysis) <- trimws(names(sens_analysis))
 
 sens_analysis <- sens_analysis[!is.na(sens_analysis$parameter) & !is.na(sens_analysis$include)   & sens_analysis$include == 1, ]
 
-# runs the model with one prameter changed
+# runs the model with one parameter changed
 # if follow up then the whole curve it mulitplied
-# if time then all the time parameter for all surgeries is multiplied
+# if time, then all the time parameter for all surgeries is multiplied
 run_deterministic <- function(raw, parameter, sheet, value) {
   arg <- setNames(list(value), parameter)
   if (sheet %in% c("follow_up", "scenarios")) run_model(raw, curve_mult = arg)
