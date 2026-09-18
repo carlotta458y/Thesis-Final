@@ -1,5 +1,5 @@
 # =======================================================================
-# Assuming that there is an initital allocation of patients between the surgery types in a decision scenario
+# Assuming that there is an initial allocation of patients between the surgery types in a decision scenario
 #
 # =======================================================================
 
@@ -10,7 +10,7 @@ setwd("")
 
 source("Accuracy_Model.R")
 
-# Get value of moving whole cohort to see if the AI-based emdical device should be applied above or below threshold
+# Get value of moving whole cohort to see if the AI-based medical device should be applied above or below threshold
 get_value_move_all <- function (NMB_wl, NMB_nl, wouldleaker_share){
   wouldleaker_share * NMB_wl + (1- wouldleaker_share) * NMB_nl
 }
