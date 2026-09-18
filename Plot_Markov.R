@@ -13,7 +13,7 @@ lambdas <- p$lambdas
 # ------- Cost-effective region in ROC space -------
 
 
-# returning the accuracy surface with the accruacy threshold line
+# returning the accuracy surface with the accuracy threshold line
 nmb_surface <- function(row, grid, price = 0) {
   outer(grid, grid, function(se, sp) {
     if (row$type == "Upgrading") {
